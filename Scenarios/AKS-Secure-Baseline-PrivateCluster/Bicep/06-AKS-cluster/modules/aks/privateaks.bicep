@@ -10,7 +10,11 @@ param location string = resourceGroup().location
 param availabilityZones array
 param enableAutoScaling bool
 param autoScalingProfile object
-
+param nodeAgents int
+param vmSize string
+param tags object = {}
+param disk int
+ 
 @allowed([
   'azure'
   'kubenet'
@@ -21,6 +25,7 @@ param networkPlugin string = 'azure'
 resource aksCluster 'Microsoft.ContainerService/managedClusters@2022-04-01' = {
   name: clusterName
   location: location
+  tags:tags
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: identity
@@ -42,11 +47,11 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2022-04-01' = {
         availabilityZones: !empty(availabilityZones) ? availabilityZones : null
         mode: 'System'
         enableEncryptionAtHost: true
-        count: 3
+        count: nodeAgents
         minCount: enableAutoScaling ? 1 : null
         maxCount: enableAutoScaling ? 3 : null
-        vmSize: 'Standard_D4d_v5'
-        osDiskSizeGB: 30
+        vmSize: vmSize
+        osDiskSizeGB: disk
         type: 'VirtualMachineScaleSets'
         vnetSubnetID: subnetId
       }
@@ -54,14 +59,12 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2022-04-01' = {
     autoScalerProfile: enableAutoScaling ? autoScalingProfile : null
     networkProfile: networkPlugin == 'azure' ? {
       networkPlugin: 'azure'
-      outboundType: 'userDefinedRouting'
       dockerBridgeCidr: '172.16.1.1/30'
       dnsServiceIP: '192.168.100.10'
       serviceCidr: '192.168.100.0/24'
       networkPolicy: 'calico'
     }:{
       networkPlugin: 'kubenet'
-      outboundType: 'userDefinedRouting'
       dockerBridgeCidr: '172.16.1.1/30'
       dnsServiceIP: '192.168.100.10'
       serviceCidr: '192.168.100.0/24'

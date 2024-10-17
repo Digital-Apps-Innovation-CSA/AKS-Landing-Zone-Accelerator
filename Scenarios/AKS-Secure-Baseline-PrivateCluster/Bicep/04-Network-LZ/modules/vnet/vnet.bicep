@@ -6,7 +6,8 @@ param vnetAddressSpace object = {
 param vnetName string
 param subnets array
 param location string = resourceGroup().location
-param dhcpOptions object
+param tags object = {}
+
 
 resource vnet 'Microsoft.Network/virtualNetworks@2020-11-01' = {
   name: vnetName
@@ -14,8 +15,9 @@ resource vnet 'Microsoft.Network/virtualNetworks@2020-11-01' = {
   properties: {
     addressSpace: vnetAddressSpace
     subnets: subnets
-    dhcpOptions: dhcpOptions
+
   }
+  tags: tags
 }
 
 output vnetId string = vnet.id

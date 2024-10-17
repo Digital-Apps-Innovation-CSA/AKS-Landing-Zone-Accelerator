@@ -5,19 +5,14 @@ param rgName string
 param vnetSpokeName string
 param spokeVNETaddPrefixes array
 param spokeSubnets array
-param rtAKSSubnetName string
-param firewallIP string
-param vnetHubName string
 param appGatewayName string
 param appGatewaySubnetName string
-param vnetHUBRGName string
 param nsgAKSName string
 param nsgAppGWName string
-param rtAppGWSubnetName string
-param dhcpOptions object
 param location string = deployment().location
 param availabilityZones array
 param appGwyAutoScale object
+param tags object = {}
 
 var privateDNSZoneAKSSuffixes = {
   AzureCloud: '.azmk8s.io'
@@ -31,6 +26,7 @@ module rg 'modules/resource-group/rg.bicep' = {
   params: {
     rgName: rgName
     location: location
+    tags: tags
   }
 }
 
@@ -44,12 +40,47 @@ module vnetspoke 'modules/vnet/vnet.bicep' = {
     }
     vnetName: vnetSpokeName
     subnets: spokeSubnets
-    dhcpOptions: dhcpOptions
+    tags: tags
   }
   dependsOn: [
     rg
   ]
 }
+
+
+module publicipbastion 'modules/VM/publicip.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'publicipbastion'
+  params: {
+    location: location
+    publicipName: 'bastion-pip'
+    publicipproperties: {
+      publicIPAllocationMethod: 'Static'
+    }
+    publicipsku: {
+      name: 'Standard'
+      tier: 'Regional'
+    }
+    tags: tags
+  }
+}
+
+resource subnetbastion 'Microsoft.Network/virtualNetworks/subnets@2020-11-01' existing = {
+  scope: resourceGroup(rg.name)
+  name: '${vnetSpokeName}/AzureBastionSubnet'
+}
+
+module bastion 'modules/VM/bastion.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'bastion'
+  params: {
+    location: location
+    bastionpipId: publicipbastion.outputs.publicipId
+    subnetId: subnetbastion.id
+    tags: tags
+  }
+}
+
 
 module nsgakssubnet 'modules/vnet/nsg.bicep' = {
   scope: resourceGroup(rg.name)
@@ -57,78 +88,8 @@ module nsgakssubnet 'modules/vnet/nsg.bicep' = {
   params: {
     location: location
     nsgName: nsgAKSName
+    tags: tags
   }
-}
-
-module routetable 'modules/vnet/routetable.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: rtAKSSubnetName
-  params: {
-    location: location
-    rtName: rtAKSSubnetName
-  }
-}
-
-module routetableroutes 'modules/vnet/routetableroutes.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'aks-to-internet'
-  params: {
-    routetableName: rtAKSSubnetName
-    routeName: 'AKS-to-internet'
-    properties: {
-      nextHopType: 'VirtualAppliance'
-      nextHopIpAddress: firewallIP
-      addressPrefix: '0.0.0.0/0'
-    }
-  }
-  dependsOn: [
-    routetable
-  ]
-}
-
-resource vnethub 'Microsoft.Network/virtualNetworks@2021-02-01' existing = {
-  scope: resourceGroup(vnetHUBRGName)
-  name: vnetHubName
-}
-
-module vnetpeeringhub 'modules/vnet/vnetpeering.bicep' = {
-  scope: resourceGroup(vnetHUBRGName)
-  name: 'vnetpeeringhub'
-  params: {
-    peeringName: 'HUB-to-Spoke'
-    vnetName: vnethub.name
-    properties: {
-      allowVirtualNetworkAccess: true
-      allowForwardedTraffic: true
-      remoteVirtualNetwork: {
-        id: vnetspoke.outputs.vnetId
-      }
-    }
-  }
-  dependsOn: [
-    vnethub
-    vnetspoke
-  ]
-}
-
-module vnetpeeringspoke 'modules/vnet/vnetpeering.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'vnetpeeringspoke'
-  params: {
-    peeringName: 'Spoke-to-HUB'
-    vnetName: vnetspoke.outputs.vnetName
-    properties: {
-      allowVirtualNetworkAccess: true
-      allowForwardedTraffic: true
-      remoteVirtualNetwork: {
-        id: vnethub.id
-      }
-    }
-  }
-  dependsOn: [
-    vnethub
-    vnetspoke
-  ]
 }
 
 module privatednsACRZone 'modules/vnet/privatednszone.bicep' = {
@@ -136,6 +97,7 @@ module privatednsACRZone 'modules/vnet/privatednszone.bicep' = {
   name: 'privatednsACRZone'
   params: {
     privateDNSZoneName: 'privatelink${environment().suffixes.acrLoginServer}'
+    tags: tags
   }
 }
 
@@ -144,49 +106,20 @@ module privateDNSLinkACR 'modules/vnet/privatednslink.bicep' = {
   name: 'privateDNSLinkACR'
   params: {
     privateDnsZoneName: privatednsACRZone.outputs.privateDNSZoneName
-    vnetId: vnethub.id
+    vnetId: vnetspoke.outputs.vnetId
+    tags: tags
   }
 }
 
-module privatednsVaultZone 'modules/vnet/privatednszone.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'privatednsVaultZone'
-  params: {
-    privateDNSZoneName: 'privatelink.vaultcore.azure.net'
-  }
-}
 
-module privateDNSLinkVault 'modules/vnet/privatednslink.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'privateDNSLinkVault'
-  params: {
-    privateDnsZoneName: privatednsVaultZone.outputs.privateDNSZoneName
-    vnetId: vnethub.id
-  }
-}
 
-module privatednsSAZone 'modules/vnet/privatednszone.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'privatednsSAZone'
-  params: {
-    privateDNSZoneName: 'privatelink.file.${environment().suffixes.storage}'
-  }
-}
-
-module privateDNSLinkSA 'modules/vnet/privatednslink.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'privateDNSLinkSA'
-  params: {
-    privateDnsZoneName: privatednsSAZone.outputs.privateDNSZoneName
-    vnetId: vnethub.id
-  }
-}
 
 module privatednsAKSZone 'modules/vnet/privatednszone.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'privatednsAKSZone'
   params: {
     privateDNSZoneName: 'privatelink.${toLower(location)}${privateDNSZoneAKSSuffixes[environment().name]}'
+    tags: tags
   }
 }
 
@@ -195,7 +128,8 @@ module privateDNSLinkAKS 'modules/vnet/privatednslink.bicep' = {
   name: 'privateDNSLinkAKS'
   params: {
     privateDnsZoneName: privatednsAKSZone.outputs.privateDNSZoneName
-    vnetId: vnethub.id
+    vnetId: vnetspoke.outputs.vnetId
+    tags: tags
   }
 }
 
@@ -213,6 +147,7 @@ module publicipappgw 'modules/vnet/publicip.bicep' = {
       name: 'Standard'
       tier: 'Regional'
     }
+    tags: tags
   }
 }
 
@@ -231,6 +166,7 @@ module appgw 'modules/vnet/appgw.bicep' = {
     appgwname: appGatewayName
     appgwpip: publicipappgw.outputs.publicipId
     subnetid: appgwSubnet.id
+    tags:tags
   }
 }
 
@@ -240,6 +176,7 @@ module nsgappgwsubnet 'modules/vnet/nsg.bicep' = {
   params: {
     location: location
     nsgName: nsgAppGWName
+    tags: tags
     securityRules: [
       {
         name: 'Allow443InBound'
@@ -294,14 +231,5 @@ module nsgappgwsubnet 'modules/vnet/nsg.bicep' = {
         }
       }
     ]
-  }
-}
-
-module appgwroutetable 'modules/vnet/routetable.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: rtAppGWSubnetName
-  params: {
-    location: location
-    rtName: rtAppGWSubnetName
   }
 }

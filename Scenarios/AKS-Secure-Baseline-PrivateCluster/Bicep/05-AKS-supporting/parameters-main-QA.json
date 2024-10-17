@@ -1,0 +1,79 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "rgName": {
+      "value": "SMAX-QA"
+    },
+    "acrName": {
+      "value": "smdaxacrr123"
+    },
+    "acrPrivateEndpointName": {
+      "value": "acr-pvt-ep"
+    },
+    "vnetName": {
+      "value": "VNET-SMAX-QA"
+    },
+    "serviceSubnetName": {
+      "value": "servicespe"
+    },
+    "postgressSubnetName": {
+      "value": "postgressubnet"
+    },
+    "netAppSubnetName": {
+      "value": "netappsubnet"
+    }
+    ,
+    "frexibleServerName": {
+      "value": "postgressmax"
+    },
+    "skuPostgres": {
+      "value": "Standard_D4s_v3"
+    },
+    "tierPostgres": {
+      "value": "GeneralPurpose"
+    },
+    "dataBaseName": {
+      "value": "smaxdatabase"
+    },
+    "adminPasswordPostgres": {
+      "value": "Password123"
+    },
+    "adminUsernamePostgres": {
+      "value": "azureuser"
+    },
+    "netAppAccountName": {
+      "value": "netappsmaxaccount"
+    },
+    "netAppAccountPoolName": {
+      "value": "netapppool"
+    },
+    "netAppVolumeName": {
+      "value": "smax-volume-001"
+    },
+    "netAppServiceLevel": {
+      "value": "Standard"
+    },
+    "netappSize":{ 
+      "value": 4398046511104
+    },
+    "networkFeatures":{ 
+      "value": "Standard"
+    },  
+    "availabilityZones": {
+      "value": [
+        "1"
+      ]
+    },
+    "protocolTypes": {
+      "value": [
+        "NFSv4.1"
+      ]
+    },
+    "tags": {
+      "value": {
+        "project": "smax"
+      }
+    }
+  }
+}

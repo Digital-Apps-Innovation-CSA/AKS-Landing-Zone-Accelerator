@@ -20,11 +20,11 @@ Review "parameters-main.json" and update the values as required. Please note to 
 # [CLI](#tab/CLI)
 
 ```azurecli
-az deployment sub create -n "ESLZ-Spoke-AKS" -l $REGION -f main.bicep -p parameters-main.json
+az deployment sub create -n "SMAX-QA123" -l centralus -f main.bicep -p parameters-main-QA.json 
 
 # Wait until App Gateway gets deployed. It takes a few mins to complete, at least 10 min.
 
-az deployment sub create -n "ESLZ-AKS-SPOKE-UDRNSG" -l $REGION -f updateUDR-NSG.bicep -p parameters-updateUDR-NSG.json
+az deployment sub create -n "SMAX-QA123" -l centralus -f deploy-vm.bicep -p parameters-deploy-vm-QA.json
 ```
 
 # [PowerShell](#tab/PowerShell)

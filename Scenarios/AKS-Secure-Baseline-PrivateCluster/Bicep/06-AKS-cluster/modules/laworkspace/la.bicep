@@ -1,6 +1,6 @@
 param workspaceName string
 param location string = resourceGroup().location
-
+param tags object = {}
 resource logworkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
   name: workspaceName
   location: location
@@ -10,6 +10,7 @@ resource logworkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
     }
     retentionInDays: 30
   }
+  tags:tags
 }
 
 output laworkspaceId string = logworkspace.id

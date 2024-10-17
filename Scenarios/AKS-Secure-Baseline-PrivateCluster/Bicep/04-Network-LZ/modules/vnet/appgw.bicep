@@ -10,10 +10,12 @@ var httplistenerName = 'httplistener'
 var backendAddressPoolName = 'backend-add-pool'
 var backendHttpSettingsCollectionName = 'backend-http-settings'
 param availabilityZones array
+param tags object = {}
 
 resource appgw 'Microsoft.Network/applicationGateways@2021-02-01' = {
   name: appgwname
   location: location
+  tags: tags
   zones: !empty(availabilityZones) ? availabilityZones : null
   properties: {
     autoscaleConfiguration: !empty(appGwyAutoScale) ? appGwyAutoScale : null

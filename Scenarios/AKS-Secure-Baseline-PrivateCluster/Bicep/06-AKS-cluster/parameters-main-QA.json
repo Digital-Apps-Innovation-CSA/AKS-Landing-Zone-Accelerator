@@ -3,16 +3,28 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "rgName": {
-      "value": "ESLZ-SPOKE"
+      "value": "SMAX-QA"
     },
     "availabilityZones": {
       "value": ["1", "2", "3"]
     },
     "clusterName": {
-      "value": "eslzakscluster"
+      "value": "smaxxluster"
+    },
+    "nodeAgents": {
+      "value": 3
+    },
+    "vmSize": {
+      "value": "Standard_D4d_v5"
+    },
+    "disk": {
+      "value": 100
     },
     "enableAutoScaling": {
       "value": false
+    },
+    "acrName": {
+      "value": "smdaxacrr123"
     },
     "autoScalingProfile": {
       "value": {
@@ -36,19 +48,16 @@
       }
     },
     "kubernetesVersion": {
-      "value": "1.22.6"
+      "value": "1.30.0"
     },
     "networkPlugin": {
       "value": "azure"
     },
-    "rtAKSName": {
-      "value": "AKS-RT"
-    },
     "akslaWorkspaceName": {
-      "value": "eslzlaworkspace"
+      "value": "smaxworkspace"
     },
     "vnetName": {
-      "value": "VNet-SPOKE"
+      "value": "VNET-SMAX-QA"
     },
     "subnetName": {
       "value": "AKS"
@@ -56,17 +65,19 @@
     "appGatewayName": {
       "value": "APPGW"
     },
-    "rtAppGWSubnetName": {
-      "value": "AppGWSubnet-RT"
-    },
     "aksuseraccessprincipalId": {
-      "value": "<service principal id for developers Microsoft Entra user group>"
+      "value": "438a2104-2b12-4f6f-88c9-8b7d97e7b0a4"
     },
     "aksadminaccessprincipalId": {
-      "value": "<service principal id for admin Microsoft Entra user group>"
+      "value": "438a2104-2b12-4f6f-88c9-8b7d97e7b0a4"
     },
     "aksIdentityName": {
       "value": "aksIdentity"
+    },
+    "tags": {
+      "value": {
+        "project": "smax"
+      }
     }
   }
 }

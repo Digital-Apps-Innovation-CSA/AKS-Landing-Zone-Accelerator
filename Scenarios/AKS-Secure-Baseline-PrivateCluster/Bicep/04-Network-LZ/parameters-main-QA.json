@@ -1,0 +1,110 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "rgName": {
+      "value": "SMAX-QA"
+    },
+    "availabilityZones": {
+      "value": [
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    "vnetSpokeName": {
+      "value": "VNET-SMAX-QA"
+    },
+    "spokeVNETaddPrefixes": {
+      "value": [
+        "10.1.0.0/21"
+      ]
+    },
+    "spokeSubnets": {
+      "value": [
+        {
+          "name": "AKS",
+          "properties": {
+            "addressPrefix": "10.1.0.0/22"
+          }
+        },
+        {
+          "name": "AppGWSubnet",
+          "properties": {
+            "addressPrefix": "10.1.4.0/27"
+          }
+        },
+        {
+          "name": "vmsubnet",
+          "properties": {
+            "addressPrefix": "10.1.5.0/24"
+          }
+        },
+        {
+          "name": "AzureBastionSubnet",
+          "properties": {
+            "addressPrefix": "10.1.4.32/27"
+          }
+        },
+        {
+          "name": "servicespe",
+          "properties": {
+            "addressPrefix": "10.1.6.0/24",
+            "privateEndpointNetworkPolicies": "Disabled"
+          }
+        },
+        {
+          "name": "netappsubnet",
+          "properties": {
+            "addressPrefix": "10.1.4.64/26",
+            "delegations": [
+              {
+                "name": "netAppDelegation",
+                "properties": {
+                  "serviceName": "Microsoft.NetApp/volumes"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "postgressubnet",
+          "properties": {
+            "addressPrefix": "10.1.7.0/24",
+            "delegations": [
+              {
+                "name": "Microsoft.DBforPostgreSQL.flexibleServers",
+                "properties": {
+                  "serviceName": "Microsoft.DBforPostgreSQL/flexibleServers"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "appGatewayName": {
+      "value": "APPGW"
+    },
+    "appGwyAutoScale": {
+      "value": {
+        "maxCapacity": 10,
+        "minCapacity": 1
+      }
+    },
+    "appGatewaySubnetName": {
+      "value": "AppGWSubnet"
+    },
+    "nsgAKSName": {
+      "value": "AKS-NSG"
+    },
+    "nsgAppGWName": {
+      "value": "APPGW-NSG"
+    },
+    "tags": {
+      "value": {
+        "project": "smax"
+      }
+    }
+  }
+}

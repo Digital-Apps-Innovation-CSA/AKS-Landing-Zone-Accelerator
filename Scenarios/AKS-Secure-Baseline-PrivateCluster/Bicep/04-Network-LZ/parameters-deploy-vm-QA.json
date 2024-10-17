@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "rgName": {
+      "value": "SMAX-QA"
+    },
+    "vnetSubnetName": {
+      "value": "vmsubnet"
+    },
+    "vnetName": {
+      "value": "VNET-SMAX-QA"
+    },
+    "vmSize": {
+      "value": "Standard_B1ms"
+    },
+    "adminUsername": {
+      "value": "azureuser"
+    },
+    "adminPassword": {
+      "value": "Password123"
+    },
+    "VMName": {
+      "value": "jumpbox"
+    },
+    "diskSizeGB": {
+      "value": 100
+    },
+    "storageAccountType": {
+      "value": "Premium_LRS"
+    },
+    "tags": {
+      "value": {
+        "project": "smax"
+      }
+    }
+
+  }
+}
